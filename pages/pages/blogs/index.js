@@ -6,28 +6,16 @@ import { Dialog } from "primereact/dialog";
 import { Toolbar } from "primereact/toolbar";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
+import { useForm } from "react-hook-form";
 import axios from "axios";
-import Link from "next/link";
 
 const BlogsPage = () => {
-  let emptyProduct = {
-    id: null,
-    name: "",
-    image: null,
-    description: "",
-    category: null,
-    price: 0,
-    quantity: 0,
-    rating: 0,
-    inventoryStatus: "INSTOCK",
-  };
 
+  const { register, handleSubmit, watch, reset, clearErrors, formState: { errors } } = useForm();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const [product, setProduct] = useState(emptyProduct);
   const [submitted, setSubmitted] = useState(false);
-  const [productDialog, setProductDialog] = useState(false);
+  const [blogDialog, setBlogDialog] = useState(false);
 
   const fetchBlogs = async () => {
     try {
@@ -46,7 +34,7 @@ const BlogsPage = () => {
     return (
       <React.Fragment>
         <Button
-          label="New"
+          label="Create"
           icon="pi pi-plus"
           severity="primary"
           onClick={openNew}
@@ -83,22 +71,44 @@ const BlogsPage = () => {
   };
 
   const openNew = () => {
-    setProduct(emptyProduct);
-    setSubmitted(false);
-    setProductDialog(true);
+    setBlogDialog(true);
   };
 
   const hideDialog = () => {
-    setSubmitted(false);
-    setProductDialog(false);
+    setBlogDialog(false);
+    reset({
+      title:'',
+      content:'',
+      author: ''
+    })
+    clearErrors(["title", "content", "author"])
   };
 
-  const productDialogFooter = (
+  const submitBlog = async data => {
+    try {
+      await axios.post('https://express-mongodb-api-server.onrender.com/api/blogs', data)
+      .then((res)=>{     
+        console.log(res)
+      })
+    } catch(error){
+      console.log(error)
+    } finally {
+      reset({
+        title:'',
+        content:'',
+        author: ''
+      })
+      setBlogDialog(false);
+      fetchBlogs()
+    }
+  }
+
+  const blogDialogFooter = (
     <>
-        <Button label="Cancel" icon="pi pi-times" text onClick={hideDialog} />
-        <Button label="Save" icon="pi pi-check" text onClick={hideDialog} />
+        <Button label="Save" icon="pi pi-check" onClick={handleSubmit(submitBlog)} />
+        <Button label="Cancel" icon="pi pi-times" severity="danger" onClick={hideDialog} />
     </>
-);
+  );
 
   useEffect(() => {
     fetchBlogs();
@@ -117,10 +127,7 @@ const BlogsPage = () => {
             rows={10}
             paginator
             loading={loading}
-            // rowsPerPageOptions={[5, 10, 25]}
-            // paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-            // currentPageReportTemplate="Showing {first} to {last} of {totalRecords} blogs"
-          >
+           >
             <Column field="title" header="Title" sortable />
             <Column field="content" header="Content" sortable />
             <Column field="author" header="Author" sortable />
@@ -133,26 +140,37 @@ const BlogsPage = () => {
           </DataTable>
 
           <Dialog
-            visible={productDialog}
+            visible={blogDialog}
             style={{ width: "450px" }}
             header="Blog Post Details"
             modal
             className="p-fluid"
             onHide={hideDialog}
-            footer={productDialogFooter}
+            footer={blogDialogFooter}
           >
             <div className="field">
-              <label htmlFor="name">Name</label>
-              <InputText />
+              <label htmlFor="title">Title</label>
+              <InputText 
+                {...register("title", { required: true })}
+              />
+              {errors.title && <span style={{ color: "red" }}>This title field is required</span>}
             </div>
             <div className="field">
-              <label htmlFor="description">Description</label>
+              <label htmlFor="content">Content</label>
               <InputTextarea
-                required
+                {...register("content", { required: true })}
                 rows={3}
                 cols={20}
               />
             </div>
+            {errors.content && <span style={{ color: "red" }}>This content field is required</span>}
+            <div className="field">
+              <label htmlFor="author">Author</label>
+              <InputText 
+                {...register("author", { required: true })}
+              />
+            </div>
+            {errors.author && <span style={{ color: "red" }}>This author field is required</span>}
           </Dialog>
         </div>
       </div>
