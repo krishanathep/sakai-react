@@ -1,7 +1,7 @@
 {
     "name": "sakai-react",
     "version": "9.1.2",
-    "private": false,
+    "private": true,
     "scripts": {
         "dev": "next dev",
         "build": "next build",
@@ -19,7 +19,8 @@
         "primereact": "9.2.3",
         "react": "18.2.0",
         "react-dom": "18.2.0",
-        "react-hook-form": "^7.44.3"
+        "react-hook-form": "^7.44.3",
+        "react-router-dom": "^6.11.2"
     },
     "devDependencies": {
         "sass": "^1.58.3"

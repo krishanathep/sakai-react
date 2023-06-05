@@ -10,11 +10,16 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 
 const BlogsPage = () => {
-
-  const { register, handleSubmit, watch, reset, clearErrors, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    clearErrors,
+    formState: { errors },
+  } = useForm();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [blogDialog, setBlogDialog] = useState(false);
 
   const fetchBlogs = async () => {
@@ -43,7 +48,17 @@ const BlogsPage = () => {
     );
   };
 
-  const actionBodyTemplate = () => {
+  const actionBodyTemplate = (params) => {
+
+    const removeBlog = async() => {
+        await axios.delete('https://express-mongodb-api-server.onrender.com/api/blogs/'+params._id)
+        .then((res)=>{
+          fetchBlogs()
+          console.log(res)
+          alert("ต้องการลบข้อมูล ID :" +params._id)
+        })
+    };
+
     return (
       <>
         <Button
@@ -64,7 +79,7 @@ const BlogsPage = () => {
           icon="pi pi-trash"
           severity="danger"
           rounded
-          onClick={() => alert("Remove Blog")}
+          onClick={removeBlog}
         />
       </>
     );
@@ -77,36 +92,46 @@ const BlogsPage = () => {
   const hideDialog = () => {
     setBlogDialog(false);
     reset({
-      title:'',
-      content:'',
-      author: ''
-    })
-    clearErrors(["title", "content", "author"])
+      title: "",
+      content: "",
+      author: "",
+    });
+    clearErrors(["title", "content", "author"]);
   };
 
-  const submitBlog = async data => {
+  const submitBlog = async (data) => {
     try {
-      await axios.post('https://express-mongodb-api-server.onrender.com/api/blogs', data)
-      .then((res)=>{     
-        console.log(res)
-      })
-    } catch(error){
-      console.log(error)
+      await axios
+        .post("https://express-mongodb-api-server.onrender.com/api/blogs", data)
+        .then((res) => {
+          console.log(res);
+        });
+    } catch (error) {
+      console.log(error);
     } finally {
       reset({
-        title:'',
-        content:'',
-        author: ''
-      })
+        title: "",
+        content: "",
+        author: "",
+      });
       setBlogDialog(false);
-      fetchBlogs()
+      fetchBlogs();
     }
-  }
+  };
 
   const blogDialogFooter = (
     <>
-        <Button label="Save" icon="pi pi-check" onClick={handleSubmit(submitBlog)} />
-        <Button label="Cancel" icon="pi pi-times" severity="danger" onClick={hideDialog} />
+      <Button
+        label="Save"
+        icon="pi pi-check"
+        onClick={handleSubmit(submitBlog)}
+      />
+      <Button
+        label="Cancel"
+        icon="pi pi-times"
+        severity="danger"
+        onClick={hideDialog}
+      />
     </>
   );
 
@@ -127,7 +152,8 @@ const BlogsPage = () => {
             rows={10}
             paginator
             loading={loading}
-           >
+          >
+            <Column field="_id" header="ID" sortable />
             <Column field="title" header="Title" sortable />
             <Column field="content" header="Content" sortable />
             <Column field="author" header="Author" sortable />
@@ -150,10 +176,12 @@ const BlogsPage = () => {
           >
             <div className="field">
               <label htmlFor="title">Title</label>
-              <InputText 
-                {...register("title", { required: true })}
-              />
-              {errors.title && <span style={{ color: "red" }}>This title field is required</span>}
+              <InputText {...register("title", { required: true })} />
+              {errors.title && (
+                <span style={{ color: "red" }}>
+                  This title field is required
+                </span>
+              )}
             </div>
             <div className="field">
               <label htmlFor="content">Content</label>
@@ -163,14 +191,20 @@ const BlogsPage = () => {
                 cols={20}
               />
             </div>
-            {errors.content && <span style={{ color: "red" }}>This content field is required</span>}
+            {errors.content && (
+              <span style={{ color: "red" }}>
+                This content field is required
+              </span>
+            )}
             <div className="field">
               <label htmlFor="author">Author</label>
-              <InputText 
-                {...register("author", { required: true })}
-              />
+              <InputText {...register("author", { required: true })} />
             </div>
-            {errors.author && <span style={{ color: "red" }}>This author field is required</span>}
+            {errors.author && (
+              <span style={{ color: "red" }}>
+                This author field is required
+              </span>
+            )}
           </Dialog>
         </div>
       </div>
