@@ -21,6 +21,7 @@ const BlogsPage = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [blogDialog, setBlogDialog] = useState(false);
+  const [editBlogDialog, setEditBlogDialog] = useState(false);
 
   const fetchBlogs = async () => {
     try {
@@ -59,6 +60,10 @@ const BlogsPage = () => {
         })
     };
 
+    const editBlog =()=>{
+      setEditBlogDialog(true)
+    }
+
     return (
       <>
         <Button
@@ -73,7 +78,7 @@ const BlogsPage = () => {
           severity="success"
           rounded
           className="mr-2"
-          onClick={() => alert("Edit blog")}
+          onClick={editBlog}
         />
         <Button
           icon="pi pi-trash"
@@ -99,11 +104,22 @@ const BlogsPage = () => {
     clearErrors(["title", "content", "author"]);
   };
 
+  const hideEditDialog = () => {
+    setEditBlogDialog(false);
+    reset({
+      title: "",
+      content: "",
+      author: "",
+    });
+    clearErrors(["title", "content", "author"]);
+  };
+
   const submitBlog = async (data) => {
     try {
       await axios
         .post("https://express-mongodb-api-server.onrender.com/api/blogs", data)
         .then((res) => {
+          fetchBlogs();
           console.log(res);
         });
     } catch (error) {
@@ -115,7 +131,6 @@ const BlogsPage = () => {
         author: "",
       });
       setBlogDialog(false);
-      fetchBlogs();
     }
   };
 
@@ -131,6 +146,22 @@ const BlogsPage = () => {
         icon="pi pi-times"
         severity="danger"
         onClick={hideDialog}
+      />
+    </>
+  );
+
+  const editBlogDialogFooter = (
+    <>
+      <Button
+        label="Save"
+        icon="pi pi-check"
+        onClick={handleSubmit(submitBlog)}
+      />
+      <Button
+        label="Cancel"
+        icon="pi pi-times"
+        severity="danger"
+        onClick={hideEditDialog}
       />
     </>
   );
@@ -173,6 +204,47 @@ const BlogsPage = () => {
             className="p-fluid"
             onHide={hideDialog}
             footer={blogDialogFooter}
+          >
+            <div className="field">
+              <label htmlFor="title">Title</label>
+              <InputText {...register("title", { required: true })} />
+              {errors.title && (
+                <span style={{ color: "red" }}>
+                  This title field is required
+                </span>
+              )}
+            </div>
+            <div className="field">
+              <label htmlFor="content">Content</label>
+              <InputTextarea
+                {...register("content", { required: true })}
+                rows={3}
+                cols={20}
+              />
+            </div>
+            {errors.content && (
+              <span style={{ color: "red" }}>
+                This content field is required
+              </span>
+            )}
+            <div className="field">
+              <label htmlFor="author">Author</label>
+              <InputText {...register("author", { required: true })} />
+            </div>
+            {errors.author && (
+              <span style={{ color: "red" }}>
+                This author field is required
+              </span>
+            )}
+          </Dialog>
+          <Dialog
+            visible={editBlogDialog}
+            style={{ width: "450px" }}
+            header="Blog Post Edit"
+            modal
+            className="p-fluid"
+            onHide={hideEditDialog}
+            footer={editBlogDialogFooter}
           >
             <div className="field">
               <label htmlFor="title">Title</label>
